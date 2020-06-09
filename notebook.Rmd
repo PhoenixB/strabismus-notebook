@@ -1,0 +1,107 @@
+---
+title: "R Notebook for the Strabismus thesis"
+author: "Pascal Jerney^[University of Berne, Switzerland], Prof. Dr. Daniel S. Mojon^[University of Berne, Switzerland]"
+date: "Created 14th July 2019"
+output:
+  html_notebook: default
+  bookdown::gitbook: default
+---
+
+```{r setup, echo=FALSE}
+# Load packages
+if (!require("pacman")) {
+  install.packages("pacman")
+}
+pacman::p_load("tidyverse")
+pacman::p_load("here")
+pacman::p_load("fs")
+pacman::p_load("tableone")
+pacman::p_load("knitr")
+pacman::p_load("lubridate")
+
+# Set working directory
+knitr::opts_knit$set(root.dir = here::here())
+```
+
+# Problem
+Squint surgery in adults is commonly considered as aesthetic surgery and therefore not covered by statutory health insurance. We aim to show that squint in adults has a significant impact on social life and business and corrective surgery should be included in standard insurance benefits.
+
+To show the negative impact of strabismus we collect Likert-type data using a validated questionnaire distributed over the Internet.
+
+# Plan
+Obsolete.
+
+# Data
+
+## Experiment
+
+### Stimulus persons
+
+Stimulus persons were created by merging two faces together, the base (normal) pictures are used by courtesy of Prof. Martin Gründl from [Beautycheck](http://www.beautycheck.de). The faces were then modified having exophoria (**why?**), acne, eyebrow piercing or temporal tattoo with [Adobe Photoshop](https://www.adobe.com/products/photoshop.html).
+
+| Face | Normal (0)                     | Strabismus (1)                 | Acne (2)                       | Piercing (3)                     | Tattoo (4)                     |
+|:----:|:------------------------------:|:------------------------------:|:------------------------------:|:------------------------------:|:------------------------------:|
+|   A  | ![Face A0](../pictures/A0.jpg) | ![Face A1](../pictures/A1.jpg) | ![Face A2](../pictures/A2.jpg) | ![Face A3](../pictures/A3.jpg) | ![Face A4](../pictures/A4.jpg) |
+|   B  | ![Face B0](../pictures/B0.jpg) | ![Face B1](../pictures/B1.jpg) | ![Face B2](../pictures/B2.jpg) | ![Face B3](../pictures/B3.jpg) | ![Face B4](../pictures/B4.jpg) |
+|   C  | ![Face C0](../pictures/C0.jpg) | ![Face C1](../pictures/C1.jpg) | ![Face C2](../pictures/C2.jpg) | ![Face C3](../pictures/C3.jpg) | ![Face C4](../pictures/C4.jpg) |
+|   D  | ![Face D0](../pictures/D0.jpg) | ![Face D1](../pictures/D1.jpg) | ![Face D2](../pictures/D2.jpg) | ![Face D3](../pictures/D3.jpg) | ![Face D4](../pictures/D4.jpg) |
+
+Table: Stimulus persons
+
+### Survey structure
+
+Participants were allocated first to either getting an appendectomy or having a medical checkup (variable `situation`) with a probability of 0.5 each. They were subsequently allocated to one of five treatment groups (variable `trt_group`) being 0 the control group with a probability of 0.2 each. The participants were shown four pictures according to the following order:
+
+| Treatment group |    |    |    |    |
+|:----------------|:--:|:--:|:--:|:--:|
+| 0 (Control)     | A0 | B0 | C0 | D0 |
+| 1               | A1 | B2 | C3 | D4 |
+| 2               | A2 | B3 | C4 | D1 |
+| 3               | A3 | B4 | C1 | D2 |
+| 4               | A4 | B1 | C2 | D3 |
+
+Table: Picture order by treatment group
+
+For every picture, participants were asked, how likely they would have the operation or checkup performed by this physician on a Likert scale from 0 (not at all) to 10 (definitely) (variable `answer`). They also had to rate the shown physician regarding their perceived reliability, honesty, attractiveness, intelligence, compentence and kindness, again on a Likert scale from 0 (not at all) to 10 (maximal). Lastly, they were asked to rate the importance of the aforementioned characteristics in a surgeon or internist respectively, again on the same Likert scale.
+
+### Data collection
+
+Data was collected using an Internet-based [survey form](http://survey.jerney.ch), which has been programmed with the [CodeIgniter](https://www.codeigniter.com) framework. Demographic data involved gender, age and nationality. To be able to recognise double respondents, the IP address was registered, as well as the date and start/end time. Lastly, the admission mode (email, another website) was collected.
+
+
+## Results
+
+### Data cleaning
+
+Data was exported from website database as comma-separated text (CSV) into a participant and an answers file. Both files were imported into [RStudio](https://www.rstudio.com), a statistical computing environment based on [R](https://www.r-project.org/), with the help of the [tidyverse](https://www.tidyverse.org/) packages.
+
+Exclusion criteria for participants were missing values, age lower than 16 or greater than 99 and an answer duration lower than 93 seconds or greater than 467 seconds (**why?**).
+
+```{r date_summary, echo=FALSE}
+participants_all <-
+  read_rds(path = path_wd('empirical', '2_pipeline', '0_get_data', 'out', 'participants_all.rds'))
+
+participants_all %>%
+  modify_at(vars(date), as_date) %>%
+  summarise(`Earliest` = min(date), `Latest` = max(date)) %>%
+  kable(caption = "Start and end date of collected data", format = "pandoc")
+```
+
+### Demographics
+
+```{r table_one,echo=FALSE,cache=FALSE}
+tableone.participants <-
+  read_rds(path = path_wd('empirical', '2_pipeline', '1_make_table_one', 'out', 'participants_tableone.rds'))
+
+(
+  kableone.participants <-
+  tableone.participants %>%
+  print(., nonnormal = c("age", "duration"), printToggle = FALSE, noSpaces = TRUE) %>%
+  kable(caption = "Participant baseline characteristics", format = "pandoc")
+)
+```
+
+# Analysis
+
+
+# Conclusion
